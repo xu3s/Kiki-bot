@@ -154,3 +154,5 @@ cython_debug/
 # test folders/files
 test/
 
+# Ignore vim swap file
+*.swp
