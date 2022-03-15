@@ -83,9 +83,9 @@ def stitch(images:list, vertical: bool = True, quality: int = 100,custname=None)
             'stitched', os.path.basename(p)) for p in img_obj]
         io_bytes.name = f'{name_list[0]}--{os.path.basename(name_list[-1])}.{misc["im_format"]}' if len(
                 name_list) > 1 else f'{name_list[0]}.{misc["im_format"]}'
-        result.save(io_bytes, format=misc['im_format'], quality=quality,
+    result.save(io_bytes, format=misc['im_format'], quality=quality,
                     subsampling=jip.get_sampling(list(img_obj)[0]))
-        io_bytes.seek(0)
+    io_bytes.seek(0)
 
     return io_bytes
 
