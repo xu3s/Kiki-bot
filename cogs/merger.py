@@ -104,7 +104,7 @@ class ImageStitcher(commands.Cog):
         # await ctx.send([f'{a.filename} {a.id} {a.url}' for a in att])
 
 async def makelist(bot,ctx:commands.Context,temp_f,zf):
-    ml = []
+    result = {}
     sl = []
     stop = False
     status = 'success'
@@ -113,6 +113,8 @@ async def makelist(bot,ctx:commands.Context,temp_f,zf):
     for fol in zfd.keys():
         ranges = zfd[fol]
         print(f'fol:{fol},\nranges:{ranges}')
+        result[fol] = []
+        ml = result[fol]
         for d in ranges:
             skip = False
             print(d)
@@ -134,11 +136,12 @@ async def makelist(bot,ctx:commands.Context,temp_f,zf):
                 break
             print(f'd:{d}, ml:{ml}, sl:{sl}')
             if stop or skip:
+                ml.append(sl.copy())
                 break
         if stop:
             status = 'stopped'
             break
-    return {'status':status, 'result':ml}
+    return {'status':status, 'result':result}
 
 async def reactor(bot,ctx:commands.Context,fp,zf,curfol):#pylint: disable=R0914
 

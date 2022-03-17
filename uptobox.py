@@ -94,4 +94,3 @@ if __name__ == '__main__':
 
     tf = '/storage/5FAE-12F0/Android/data/com.termux/clean/idk.png'
     print(upload(tf,'/Unknown',use_conf=False))
-    #print(download('https://www.dropbox.com/s/la3qxl7l7v0p0ln/IMG-20220212-WA0000.jpeg?dl=0', 'ts'))
