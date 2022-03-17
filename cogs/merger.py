@@ -3,14 +3,13 @@ import tempfile
 import zipfile
 import os
 import re
-from datetime import datetime
 
 # import requests as req
 import discord
 from discord.ext import commands
 import uptobox as dbx
 from cogs import ijoiner
-from cogs.misc_ext import presence_change, ForwardPrint
+from cogs.misc_ext import presence_change
 
 
 class ImageStitcher(commands.Cog):
@@ -30,19 +29,15 @@ class ImageStitcher(commands.Cog):
 
         loop = asyncio.get_running_loop()
         await presence_change(self.bot, 'append')
-        with ForwardPrint(f'{datetime.utcnow().strftime("%Y-%m-%d")}_Stitch_{ctx.author}.log'):
-            await asyncio.gather(loop.create_task(
-                self.proccess_stitch(ctx, zip_link, att, max_stitch)))
+        await asyncio.gather(loop.create_task(
+            self.proccess_stitch(ctx, zip_link, att, max_stitch)))
         await presence_change(self.bot, 'substract')
 
     async def proccess_stitch(self, ctx:commands.Context, zip_link, att, max_stitch):
         tr = '[ \n]'
         try:
             max_stitch = int(max_stitch)
-        except Exception as e:
-            import traceback
-            traceback.print_tb(e.__traceback__)
-            print(e)
+        except (ValueError,TypeError):
             max_stitch = None
        #  if att:
        # zip_link.extend([z.url for z in att if z.filename.endswith('.zip')])
@@ -103,7 +98,7 @@ class ImageStitcher(commands.Cog):
         # await ctx.send(f'att: {att}, \n zip_link: {zip_link}')
         # await ctx.send([f'{a.filename} {a.id} {a.url}' for a in att])
 
-async def makelist(bot,ctx:commands.Context,temp_f,zf):
+async def makelist(bot:commands.Bot,ctx:commands.Context,temp_f,zf):
     result = {}
     sl = []
     stop = False
@@ -114,7 +109,6 @@ async def makelist(bot,ctx:commands.Context,temp_f,zf):
         ranges = zfd[fol]
         print(f'fol:{fol},\nranges:{ranges}')
         result[fol] = []
-        ml = result[fol]
         for d in ranges:
             skip = False
             print(d)
@@ -123,7 +117,7 @@ async def makelist(bot,ctx:commands.Context,temp_f,zf):
                 if response == 'append':
                     sl.append(d)
                 if response == 'next':
-                    ml.append(sl.copy())
+                    result[fol].append(sl.copy())
                     sl.clear()
                     sl.append(d)
                 if response in ['stop','cancel']:
@@ -131,17 +125,21 @@ async def makelist(bot,ctx:commands.Context,temp_f,zf):
                 if response == 'skip':
                     skip = True
                 if d == ranges[-1]:
-                    ml.append(sl.copy())
+                    result[fol].append(sl.copy())
                     sl.clear()
                 break
-            print(f'd:{d}, ml:{ml}, sl:{sl}')
             if stop or skip:
-                ml.append(sl.copy())
+                result[fol].append(sl.copy())
                 break
+            print(f'd:{d}, ml:{ml}, sl:{sl}')
         if stop:
             status = 'stopped'
             break
-    return {'status':status, 'result':result}
+    if [x for x in result.values() if x]:
+        await ctx.reply('All skipped or none was selected.')
+        status, info='skipped', 'Skipped or none was selected.'
+
+    return {'status':status, 'result':result, 'info':info}
 
 async def reactor(bot,ctx:commands.Context,fp,zf,curfol):#pylint: disable=R0914
 

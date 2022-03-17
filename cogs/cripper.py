@@ -1,12 +1,9 @@
-# import sys
-# from concurrent.futures import ThreadPoolExecutor
 import asyncio
-from datetime import datetime
 import discord
 from discord.ext import commands
 from ccrawlerv2 import Manga
 from cogs import pager
-from cogs.misc_ext import presence_change, ForwardPrint
+from cogs.misc_ext import presence_change
 
 
 class ComicCrawler(commands.Cog):#pylint: disable=too-few-public-methods
@@ -57,8 +54,7 @@ class ComicCrawler(commands.Cog):#pylint: disable=too-few-public-methods
             #     return
         loop = asyncio.get_running_loop()
 
-        with ForwardPrint(f'{datetime.utcnow().strftime("%Y-%m-%d")}_Ripper_{ctx.author}.log'):
-            await asyncio.gather(loop.create_task(self.process(ctx,manga,chapter)))
+        await asyncio.gather(loop.create_task(self.process(ctx,manga,chapter)))
 
 
     async def process(self,ctx:commands.Context,manga,chapter):
