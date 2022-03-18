@@ -129,7 +129,8 @@ async def makelist(bot:commands.Bot,ctx:commands.Context,temp_f,zf):
         if stop:
             status = 'stopped'
             break
-    if [x for x in result.values() if x] and not stop:
+
+    if not [x for x in result.values() if any(x)] and not stop:
         await ctx.reply('All skipped or none was selected.')
         status, info='skipped', 'Skipped or none was selected.'
 
