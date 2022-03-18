@@ -49,10 +49,9 @@ def stitch(images:list, vertical: bool = True, quality: int = 100,custname=None)
             file_name = os.path.splitext(img.name)[0]
         else:
             continue
-        print(file_name)
+        print(f'{file_name}: {img_obj[file_name].mode}')
         img_obj[file_name] = Image.open(img)
         misc['im_mode'].append(img_obj[file_name].mode)
-        print(img_obj[file_name].mode)
         width.append(img_obj[file_name].size[0])
         height.append(img_obj[file_name].size[1])
 
@@ -67,11 +66,10 @@ def stitch(images:list, vertical: bool = True, quality: int = 100,custname=None)
             color=(255, 255, 255) if misc['im_mode'] != 'L' else (255))
     start_val = 0
     for img in img_obj.values():
-        print(img.mode)
         result.paste(img, box=(0, start_val) if vertical else (start_val, 0))
         start_val = sum((start_val, img.size[1])) if vertical else sum(
             (start_val, img.size[0]))
-        print(start_val)
+    print(start_val)
 
     io_bytes = io.BytesIO()
     if custname:
@@ -161,13 +159,11 @@ def zip_stitch(zfp, **kwargs):
     quality = kwargs.pop('quality',100)
     r = kwargs.pop('r',False)
     zfl = kwargs.pop('zfl', get_zfl(zfp))
-    # print(zfl)
 
     with zipfile.ZipFile(zfp, 'a', zipfile.ZIP_DEFLATED) as zf:
         for fol in zfl.keys():
             images = zfl[fol]
             itername = 0
-            # print(images)
             if custom and len(images) > 1:
                 for c in custom:
                     itername = f'{int(itername)+1:03d}'
@@ -274,23 +270,4 @@ def analyzer(p, vertical:bool=True, max_stitch:int=3, quality:int=100, r:bool=Fa
 
 if __name__ == "__main__":
 
-    # cust = [['0-3'],['4-10']]
-    # cust = [chan_gen(*l) for l in cust]
-    # print(cust)
-    # folder_stitch('/data/data/com.termux/files/home/developing/imaging/test/02/', custom=cust)
-
-    # with open('to_stitch.txt') as f:
-    #     data = f.read()
-    # to_stitch = ast.literal_eval(data)
-    # for ts in to_stitch:
-    #     cust = [chan_gen(*l) for l in to_stitch[ts]]
-    #     folder_stitch(ts, custom=cust)
-
-    # print(get_zfl('test/02.zip'))
-    zip_stitch('test/020.zip')
-
-    # print(_skel(a='its a'))
-    # print('no a')
-    # print(_skel())
-    # print('overload')
-    # print(_skel(a='its an a', b='its a b'))
+    print('its a module?')

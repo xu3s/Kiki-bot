@@ -21,7 +21,6 @@ class Manga:
             self.mission = Mission(url=url)
             Analyzer(self.mission).analyze()
             print(self.mission.title)
-            # print(self.mission.episodes)
         except Exception as e: # pylint: disable=broad-except
             print(f'failed in parsing url: {url}')
             print(e)
@@ -50,13 +49,11 @@ class Manga:
                         download(self.mission, tempdir)
 
                         for chf in os.listdir(tempdir):
-                            print(chf)
                             tempzip = os.path.join(tempdir,ep.title)
                             shutil.make_archive(
                                     tempzip, 'zip',
                                     os.path.join(tempdir,chf))
                             print(os.listdir(os.path.join(tempdir, chf)))
-                        print(os.listdir(tempdir))
                         if os.path.exists(f'{tempzip}.zip'):
                             retry = 0
                             while True:
@@ -102,7 +99,3 @@ class Manga:
                     f'{ep.title}.zip'
                     ))
                 yield f'File Name: {ugl["name"]}\nDownload Url: {ugl["url"]}'
-
-if __name__ == '__main__':
-    link = 'https://manga.bilibili.com/detail/mc29562?from=manga_index'
-    print(Manga().manga(link))

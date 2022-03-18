@@ -41,7 +41,6 @@ class ImageStitcher(commands.Cog):
             max_stitch = None
        #  if att:
        # zip_link.extend([z.url for z in att if z.filename.endswith('.zip')])
-        # await presence_change(self.bot, 'append')
         if zip_link:
             zip_link = re.sub(tr, ' ', zip_link).split(' ')
             for zl in zip_link:
@@ -52,8 +51,6 @@ class ImageStitcher(commands.Cog):
 
                             try:
                                 with zipfile.ZipFile(fp,'r',zipfile.ZIP_DEFLATED) as zf:
-                                    # loop = asyncio.get_running_loop()
-                                    # print(zf.filelist)
                                     if max_stitch:
                                         ijoiner.zip_stitch(fp, max_stitch=max_stitch)
                                     else:
@@ -69,8 +66,6 @@ class ImageStitcher(commands.Cog):
                                                     print(f'error on mkl {e}')
                                                     await ctx.reply(f'failed loading file:\n {e}')
                                                     return e
-                                        # print(custom)
-                                        # return
                                         if custom['status'] == 'success':
                                             ijoiner.zip_stitch(fp, custom=custom['result'])
                                         else:
@@ -103,12 +98,11 @@ async def makelist(bot:commands.Bot,ctx:commands.Context,temp_f,zf):
     sl = []
     stop = False
     status = 'success'
+    info = 'makelist done'
     print(temp_f)
     zfd = ijoiner.get_zfl(temp_f)
-    print(list(zfd.keys()))
     for fol in zfd.keys():
         ranges = zfd[fol]
-        print(f'fol:{fol},\nranges:{ranges}')
         result[fol] = []
         for d in ranges:
             skip = False
@@ -132,7 +126,6 @@ async def makelist(bot:commands.Bot,ctx:commands.Context,temp_f,zf):
             if stop or skip:
                 result[fol].append(sl.copy())
                 break
-            print(f'd:{d}, ml:{ml}, sl:{sl}')
         if stop:
             status = 'stopped'
             break
@@ -147,17 +140,15 @@ async def reactor(bot,ctx:commands.Context,fp,zf,curfol):#pylint: disable=R0914
     d = os.path.basename(fp)
     print(fp)
     reactions = ['⏫','⏭️']
-    state = f'current folder: {curfol}\nimage:{d}'
+    state = f'Current folder: {curfol}\nimage: {d}'
     embed = discord.Embed(title='image selector',description=state)
     embed.set_image(url=f'attachment://{d}')
-    embed.set_footer(text='react with ⏫ = add, ⏭️= add to next list.\ntype stop or cancel to stop')
+    instructions = 'react with ⏫ = add to stitch, ⏭️= add to next list.\ntype "stop" to abort. type "skip" to skip folder.'
+    embed.set_footer(text=instructions)
 
     message = await ctx.reply(embed=embed,file=discord.File(zf.open(fp,'r'),d))
     for react in reactions:
         await message.add_reaction(react)
-    # await message.add_reaction('👍')
-    # await message.add_reaction('⏭️')
-    # await message.add_reaction('✖️')
 
     def check(reaction,user):
         return user == ctx.author and str(reaction) in reactions
@@ -168,13 +159,10 @@ async def reactor(bot,ctx:commands.Context,fp,zf,curfol):#pylint: disable=R0914
         done, pending = await asyncio.wait([
             asyncio.create_task(bot.wait_for(
                 'reaction_add', check=check, timeout=30)),
-            # , timeout=15))
             asyncio.create_task(bot.wait_for('message', check=check_msg))
         ], return_when=asyncio.FIRST_COMPLETED)
         for task in pending:
             task.cancel()
-        # event = done.pop().result()
-
         event = next(x.result() for x in done)
 
         if isinstance(event, discord.Message):
@@ -183,10 +171,7 @@ async def reactor(bot,ctx:commands.Context,fp,zf,curfol):#pylint: disable=R0914
 
         reaction, user = event
 
-        # reaction, user = await bot.wait_for('reaction_add', check=check, timeout=30)
-
         if str(reaction.emoji) =='⏫':
-            # sl.append(d)
             await ctx.send(f'{d} added', delete_after=15)
             await message.delete()
             return 'append'
@@ -194,10 +179,6 @@ async def reactor(bot,ctx:commands.Context,fp,zf,curfol):#pylint: disable=R0914
             await ctx.send(f'{d} added to a new list', delete_after=15)
             await message.delete()
             return 'next'
-        # if str(reaction.emoji) =='✖️':
-        #     await ctx.send(f'stop. result:{ml}', delete_after=35)
-        #     await message.delete()
-        #     stop = True
     except asyncio.TimeoutError:
         await ctx.send('time is up!. Canceling...', delete_after=35)
         await message.delete()

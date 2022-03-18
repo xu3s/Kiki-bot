@@ -89,8 +89,3 @@ def download(dbx_url, dl_path):
         info = e
         fpath = None
     return result, info, fpath
-
-if __name__ == '__main__':
-
-    tf = '/storage/5FAE-12F0/Android/data/com.termux/clean/idk.png'
-    print(upload(tf,'/Unknown',use_conf=False))

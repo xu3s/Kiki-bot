@@ -17,8 +17,7 @@ async def on_ready():
     print(bot.user.id)
     print('-----------')
     await presence_change(bot)
-    # await bot.change_presence(activity=discord.Activity(
-    #   type=discord.ActivityType.watching, name='Its ok to use'))
+
 if __name__=='__main__':
     cogs_to_load = ['cogs.cripper', 'cogs.merger']
     for cog in cogs_to_load:
