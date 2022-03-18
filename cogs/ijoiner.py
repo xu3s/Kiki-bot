@@ -192,7 +192,13 @@ def zip_stitch(zfp, **kwargs):
 def get_zfl(zfp) -> dict:
     with zipfile.ZipFile(zfp,'r', zipfile.ZIP_DEFLATED) as zf:
         zfl = sorted([im.filename for im in zf.filelist if not im.is_dir()], key=natural_key)
-        fol_list = list(reversed([im.filename for im in zf.filelist if im.is_dir()]))
+        fol_list = []
+        for im in zf.filelist:
+            imd = os.path.dirname(im.filename)
+            if imd in fol_list:
+                continue
+            fol_list.append(imd)
+        fol_list.reverse()
         fol_list.append('root')
         print(f'folder: {fol_list}')
         res = {}
