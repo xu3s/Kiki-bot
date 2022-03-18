@@ -100,6 +100,7 @@ async def makelist(bot:commands.Bot,ctx:commands.Context,temp_f,zf):
     status = 'success'
     info = 'makelist done'
     print(temp_f)
+    msg = None
     zfd = ijoiner.get_zfl(temp_f)
     for fol in zfd.keys():
         ranges = zfd[fol]
@@ -108,7 +109,10 @@ async def makelist(bot:commands.Bot,ctx:commands.Context,temp_f,zf):
             skip = False
             print(d)
             while True:
-                response = await reactor(bot=bot,ctx=ctx,fp=d,zf=zf,curfol=fol)
+                if not msg:
+                    msg, response = await reactor(bot=bot,ctx=ctx,fp=d,zf=zf,curfol=fol)
+                else:
+                    response = await reactor(bot=bot,ctx=ctx,fp=d,zf=zf,curfol=fol,msg=msg)
                 if response == 'append':
                     sl.append(d)
                 if response == 'next':
@@ -136,7 +140,7 @@ async def makelist(bot:commands.Bot,ctx:commands.Context,temp_f,zf):
 
     return {'status':status, 'result':result, 'info':info}
 
-async def reactor(bot,ctx:commands.Context,fp,zf,curfol):#pylint: disable=R0914
+async def reactor(bot,ctx:commands.Context,fp,zf,curfol,msg:commands.Context=None):#pylint: disable=R0914,R0913
 
     d = os.path.basename(fp)
     print(fp)
@@ -147,7 +151,10 @@ async def reactor(bot,ctx:commands.Context,fp,zf,curfol):#pylint: disable=R0914
     instructions = 'react with ⏫ = add to stitch, ⏭️= add to next list.\ntype "stop" to abort. type "skip" to skip folder.'
     embed.set_footer(text=instructions)
 
-    message = await ctx.reply(embed=embed,file=discord.File(zf.open(fp,'r'),d))
+    if not msg:
+        message = await ctx.reply(embed=embed,file=discord.File(zf.open(fp,'r'),d))
+    else:
+        message = await msg.edit(embed=embed,file=discord.File(zf.open(fp,'r'),d))
     for react in reactions:
         await message.add_reaction(react)
 
@@ -173,16 +180,20 @@ async def reactor(bot,ctx:commands.Context,fp,zf,curfol):#pylint: disable=R0914
         reaction, user = event
 
         if str(reaction.emoji) =='⏫':
-            await ctx.send(f'{d} added', delete_after=15)
-            await message.delete()
-            return 'append'
+            await ctx.send(f'{d} added', delete_after=30)
+            cmd = 'append'
         if str(reaction.emoji) =='⏭️':
-            await ctx.send(f'{d} added to a new list', delete_after=15)
-            await message.delete()
-            return 'next'
+            await ctx.send(f'{d} added to a new list', delete_after=30)
+            cmd = 'next'
+        await message.remove_reaction(reaction, user)
+        if not msg:
+            return message, cmd
+        return cmd
     except asyncio.TimeoutError:
         await ctx.send('time is up!. Canceling...', delete_after=35)
         await message.delete()
+        if not msg:
+            return None, cmd
         return 'stop'
 
 async def stitch_up(ctx,zfp,custom):
