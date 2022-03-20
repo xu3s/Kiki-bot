@@ -106,6 +106,7 @@ async def makelist(bot:commands.Bot,ctx:commands.Context,temp_d, temp_f):
     stop = False
     status = 'success'
     info = 'makelist done'
+    print(temp_d)
     msg = None
     zfd = ijoiner.get_zfl(temp_f)
     print(f'zfd keys: {zfd.keys()}')
@@ -145,9 +146,8 @@ async def makelist(bot:commands.Bot,ctx:commands.Context,temp_d, temp_f):
         if stop:
             status = 'stopped'
             break
-
-    await msg.delete()
-    print('before chwck')
+    if not stop:
+        await msg.delete()
     if not [x for x in result.values() if any(x)] and not stop:
         await ctx.reply('All skipped or none was selected.')
         status, info='skipped', 'Skipped or none was selected.'
