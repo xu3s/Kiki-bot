@@ -49,6 +49,7 @@ class ImageStitcher(commands.Cog):
             zip_link = re.sub(tr, ' ', zip_link).split(' ')
             for zl in zip_link:
                 with tempfile.TemporaryDirectory() as tempdir:
+                    print(f'tempd: {tempdir}')
                     if 'dropbox.com' in zl:
                         status, info, fp = dbx.download(zl,tempdir)
                         if status == 'success':
