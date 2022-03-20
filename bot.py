@@ -1,12 +1,11 @@
 import os
 import discord
 from discord.ext import commands
-from dotenv import load_dotenv
 from cogs.misc_ext import presence_change
+from config import conf
 
-load_dotenv()
-TOKEN = os.getenv('DISCORD_TOKEN')
-prefix = os.getenv('DISCORD_PREFIX')
+TOKEN = conf().DISCORD_TOKEN
+prefix = conf().PREFIX
 print(f'prefix: {prefix}')
 bot = commands.Bot(command_prefix=prefix, description='hello world')
 

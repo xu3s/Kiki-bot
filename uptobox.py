@@ -1,13 +1,9 @@
 import os
-from dotenv import load_dotenv
 import dropbox
 from dropbox import exceptions
+from config import conf
 
-load_dotenv()
-TOKEN = os.getenv('DROPBOX_TOKEN')
-# TOKEN = os.environ.get('DROPBOX_TOKEN')
-
-dbx = dropbox.Dropbox(TOKEN)
+dbx = dropbox.Dropbox(conf().DROPBOX_TOKEN)
 
 root = '/raws'
 

@@ -2,6 +2,7 @@ import asyncio
 import tempfile
 import zipfile
 import os
+from pathlib import Path
 import re
 
 # import requests as req
@@ -10,7 +11,10 @@ from discord.ext import commands
 import uptobox as dbx
 from cogs import ijoiner
 from cogs.misc_ext import presence_change
+from config import conf
 
+server = conf().SERVER_URL
+tempfile.tempdir = conf().TEMPDIR
 
 class ImageStitcher(commands.Cog):
     '''Stitch Image. from a zip file.'''
@@ -54,10 +58,12 @@ class ImageStitcher(commands.Cog):
                                     if max_stitch:
                                         ijoiner.zip_stitch(fp, max_stitch=max_stitch)
                                     else:
+                                        print('extracting..')
+                                        zf.extractall(path=tempdir)
                                         retry = 0
                                         while True:
                                             try:
-                                                custom = await makelist(self.bot,ctx,fp, zf)
+                                                custom = await makelist(self.bot,ctx,tempdir,fp)
                                                 break
 
                                             except Exception as e:
@@ -67,6 +73,7 @@ class ImageStitcher(commands.Cog):
                                                     await ctx.reply(f'failed loading file:\n {e}')
                                                     return e
                                         if custom['status'] == 'success':
+                                            print('process stitching..')
                                             ijoiner.zip_stitch(fp, custom=custom['result'])
                                         else:
                                             await ctx.reply('operation canceled!')
@@ -76,8 +83,8 @@ class ImageStitcher(commands.Cog):
                                     await ctx.reply(up)
 
                             except Exception as e:
-                                print(e)
                                 await ctx.reply(f'error processing {zl}: \n {e}')
+                                raise e
                         else:
                             await ctx.reply(f'failed to fetch file\nerr:{info}')
                     elif 'cdn.discordapp.com' in zl:
@@ -93,26 +100,31 @@ class ImageStitcher(commands.Cog):
         # await ctx.send(f'att: {att}, \n zip_link: {zip_link}')
         # await ctx.send([f'{a.filename} {a.id} {a.url}' for a in att])
 
-async def makelist(bot:commands.Bot,ctx:commands.Context,temp_f,zf):
+async def makelist(bot:commands.Bot,ctx:commands.Context,temp_d, temp_f):
     result = {}
     sl = []
     stop = False
     status = 'success'
     info = 'makelist done'
-    print(temp_f)
     msg = None
     zfd = ijoiner.get_zfl(temp_f)
+    print(f'zfd keys: {zfd.keys()}')
     for fol in zfd.keys():
         ranges = zfd[fol]
         result[fol] = []
         for d in ranges:
             skip = False
             print(d)
+            im_url=os.path.join(server, os.path.basename(temp_d), d)
+            print(im_url)
+            misc={'folder':fol,'sl':sl,'url':im_url}
             while True:
                 if not msg:
-                    msg, response = await reactor(bot=bot,ctx=ctx,fp=d,zf=zf,curfol=fol)
+                    msg, response = await reactor(bot=bot,ctx=ctx,misc=misc)
                 else:
-                    response = await reactor(bot=bot,ctx=ctx,fp=d,zf=zf,curfol=fol,msg=msg)
+                    response = await reactor(bot=bot,ctx=ctx,misc=misc,saved=msg)
+
+                print(response)
                 if response == 'append':
                     sl.append(d)
                 if response == 'next':
@@ -134,29 +146,32 @@ async def makelist(bot:commands.Bot,ctx:commands.Context,temp_f,zf):
             status = 'stopped'
             break
 
+    await msg.delete()
+    print('before chwck')
     if not [x for x in result.values() if any(x)] and not stop:
         await ctx.reply('All skipped or none was selected.')
         status, info='skipped', 'Skipped or none was selected.'
 
+    print(f'result: {result}')
     return {'status':status, 'result':result, 'info':info}
 
-async def reactor(bot,ctx:commands.Context,fp,zf,curfol,msg:commands.Context=None):#pylint: disable=R0914,R0913
+async def reactor(bot,ctx:commands.Context,misc,saved:commands.Context=None):#pylint: disable=R0914,R0913
 
-    d = os.path.basename(fp)
-    print(fp)
+    d = os.path.basename(misc['url'])
     reactions = ['⏫','⏭️']
-    state = f'Current folder: {curfol}\nimage: {d}'
+    state = f'Current folder: {misc["folder"]}\nCurrent list:{misc["sl"]}\nimage: {d}'
     embed = discord.Embed(title='image selector',description=state)
-    embed.set_image(url=f'attachment://{d}')
+    embed.set_image(url=misc['url'])
     instructions = 'react with ⏫ = add to stitch, ⏭️= add to next list.\ntype "stop" to abort. type "skip" to skip folder.'
     embed.set_footer(text=instructions)
 
-    if not msg:
-        message = await ctx.reply(embed=embed,file=discord.File(zf.open(fp,'r'),d))
+    if not saved:
+        message = await ctx.reply(embed=embed)
+        for react in reactions:
+            await message.add_reaction(react)
     else:
-        message = await msg.edit(embed=embed,file=discord.File(zf.open(fp,'r'),d))
-    for react in reactions:
-        await message.add_reaction(react)
+        message = saved
+        await message.edit(embed=embed)
 
     def check(reaction,user):
         return user == ctx.author and str(reaction) in reactions
@@ -174,26 +189,27 @@ async def reactor(bot,ctx:commands.Context,fp,zf,curfol,msg:commands.Context=Non
         event = next(x.result() for x in done)
 
         if isinstance(event, discord.Message):
-            await message.delete()
+            if not saved:
+                return message, event.content.lower()
             return event.content.lower()
 
         reaction, user = event
 
         if str(reaction.emoji) =='⏫':
-            await ctx.send(f'{d} added', delete_after=30)
+            # await ctx.send(f'{d} added', delete_after=30)
             cmd = 'append'
         if str(reaction.emoji) =='⏭️':
-            await ctx.send(f'{d} added to a new list', delete_after=30)
+            # await ctx.send(f'{d} added to a new list', delete_after=30)
             cmd = 'next'
         await message.remove_reaction(reaction, user)
-        if not msg:
+        if not saved:
             return message, cmd
         return cmd
     except asyncio.TimeoutError:
         await ctx.send('time is up!. Canceling...', delete_after=35)
         await message.delete()
-        if not msg:
-            return None, cmd
+        if not saved:
+            return None, 'stop'
         return 'stop'
 
 async def stitch_up(ctx,zfp,custom):

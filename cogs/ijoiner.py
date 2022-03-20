@@ -4,14 +4,13 @@ import io
 import re
 import imghdr
 import zipfile
-import tempfile
+# import tempfile
 import pathlib
 import shutil
 
 # 3rd party libs
 from PIL import Image, JpegImagePlugin as jip
 import filetype
-# import customerror
 
 
 bname = os.path.basename
@@ -36,7 +35,6 @@ def stitch(images:list, vertical: bool = True, quality: int = 100,custname=None)
     height = []
     # box = {'w':[],'h':[]}
     # im_mode = []
-    # print([f'{type(o)} {o.name}' for o in images])
     misc ={'im_mode':[], 'im_format':[]}
     misc['im_format'] = [imghdr.what(im) for im in images]
     misc['im_format'] = max(misc['im_format'], key=misc['im_format'].count)
@@ -49,7 +47,6 @@ def stitch(images:list, vertical: bool = True, quality: int = 100,custname=None)
             file_name = os.path.splitext(img.name)[0]
         else:
             continue
-        print(f'{file_name}: {img_obj[file_name].mode}')
         img_obj[file_name] = Image.open(img)
         misc['im_mode'].append(img_obj[file_name].mode)
         width.append(img_obj[file_name].size[0])
@@ -157,7 +154,7 @@ def zip_stitch(zfp, **kwargs):
     max_stitch = kwargs.pop('max_stitch',3)
     custom = kwargs.pop('custom',None)
     quality = kwargs.pop('quality',100)
-    r = kwargs.pop('r',False)
+    # r = kwargs.pop('r',False)
     zfl = kwargs.pop('zfl', get_zfl(zfp))
 
     with zipfile.ZipFile(zfp, 'a', zipfile.ZIP_DEFLATED) as zf:
@@ -165,12 +162,13 @@ def zip_stitch(zfp, **kwargs):
             images = zfl[fol]
             itername = 0
             if custom and len(images) > 1:
-                for c in custom:
-                    itername = f'{int(itername)+1:03d}'
-                    result = stitch(
-                            [zf.open(imp,'r') for imp in images if imp in c],
-                            vertical=vertical, quality=quality, custname=itername)
-                    zf.writestr(result.name, result.getvalue())
+                for clist in custom.values():
+                    for c in clist:
+                        itername = f'{int(itername)+1:03d}'
+                        result = stitch(
+                                [zf.open(imp,'r') for imp in images if imp in c],
+                                vertical=vertical, quality=quality, custname=itername)
+                        zf.writestr(result.name, result.getvalue())
 
             elif not custom and len(images) > 1:
                 for x in range(0, len(images), max_stitch):
@@ -195,18 +193,13 @@ def get_zfl(zfp) -> dict:
                 continue
             fol_list.append(imd)
         fol_list.reverse()
-        fol_list.append('root')
-        print(f'folder: {fol_list}')
         res = {}
         reres = []
         for fol in fol_list:
             res[fol] = []
-            if fol == 'root':
-                res[fol] = [x for x in zfl if x not in reres and filetype.is_image(zf.open(x))]
-            else:
-                for file in zfl:
-                    if file.startswith(fol) and file not in reres and filetype.is_image(zf.open(file)):
-                        res[fol].append(file)
+            for file in zfl:
+                if file.startswith(fol) and file not in reres and filetype.is_image(zf.open(file)):
+                    res[fol].append(file)
             reres.extend(res[fol])
 
         return {x:res[x] for x in reversed(res.keys()) if res[x]}
