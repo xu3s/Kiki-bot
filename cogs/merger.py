@@ -161,7 +161,7 @@ async def reactor(bot,ctx:commands.Context,misc,saved:commands.Context=None):#py
     reactions = ['⏫','⏭️']
     state = f'Current folder: {misc["folder"]}\nCurrent list:{misc["sl"]}\nimage: {d}'
     embed = discord.Embed(title='image selector',description=state)
-    embed.set_image(url=parse.quote(misc['url']))
+    embed.set_image(url=parse.quote(misc['url'],safe=':/'))
     instructions = 'react with ⏫ = add to stitch, ⏭️= add to next list.\ntype "stop" to abort. type "skip" to skip folder.'
     embed.set_footer(text=instructions)
 
