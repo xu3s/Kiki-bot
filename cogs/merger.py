@@ -148,8 +148,7 @@ async def makelist(bot:commands.Bot,ctx:commands.Context,temp_d, temp_f):
         if stop:
             status = 'stopped'
             break
-    if not stop:
-        await msg.delete()
+    await msg.delete()
     if not [x for x in result.values() if any(x)] and not stop:
         await ctx.reply('All skipped or none was selected.')
         status, info='skipped', 'Skipped or none was selected.'
@@ -191,6 +190,7 @@ async def reactor(bot,ctx:commands.Context,misc,saved:commands.Context=None):#py
         event = next(x.result() for x in done)
 
         if isinstance(event, discord.Message):
+            await event.delete()
             if not saved:
                 return message, event.content.lower()
             return event.content.lower()
@@ -209,7 +209,6 @@ async def reactor(bot,ctx:commands.Context,misc,saved:commands.Context=None):#py
         return cmd
     except asyncio.TimeoutError:
         await ctx.send('time is up!. Canceling...', delete_after=35)
-        await message.delete()
         if not saved:
             return None, 'stop'
         return 'stop'
