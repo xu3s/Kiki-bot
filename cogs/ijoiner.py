@@ -37,6 +37,7 @@ def stitch(images:list, vertical: bool = True, quality: int = 100,custname=None)
     # im_mode = []
     misc ={'im_mode':[], 'im_format':[]}
     misc['im_format'] = [imghdr.what(im) for im in images]
+    print(f'imgs:{images}, fmt:{misc["im_format"]}')
     misc['im_format'] = max(misc['im_format'], key=misc['im_format'].count)
 
     # print(images)
