@@ -37,7 +37,6 @@ def stitch(images:list, vertical: bool = True, quality: int = 100,custname=None)
     # im_mode = []
     misc ={'im_mode':[], 'im_format':[]}
     misc['im_format'] = [imghdr.what(im) for im in images]
-    print(f'imgs:{images}, fmt:{misc["im_format"]}')
     misc['im_format'] = max(misc['im_format'], key=misc['im_format'].count)
 
     # print(images)
@@ -165,11 +164,8 @@ def zip_stitch(zfp, **kwargs):
             if custom and len(images) > 1:
                 for clist in custom.values():
                     for c in clist:
-                        print(f'c: {c}')
                         if not c:
-                            print('not true')
                             continue
-                        print('is true')
                         itername = f'{int(itername)+1:03d}'
                         result = stitch(
                                 # [zf.open(imp,'r') for imp in images if imp in c],
