@@ -165,8 +165,11 @@ def zip_stitch(zfp, **kwargs):
             if custom and len(images) > 1:
                 for clist in custom.values():
                     for c in clist:
+                        print(f'c: {c}')
                         if not c:
+                            print('not true')
                             continue
+                        print('is true')
                         itername = f'{int(itername)+1:03d}'
                         result = stitch(
                                 [zf.open(imp,'r') for imp in images if imp in c],
