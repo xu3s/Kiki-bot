@@ -144,6 +144,7 @@ async def makelist(bot:commands.Bot,ctx:commands.Context,temp_d, temp_f):
                 break
             if stop or skip:
                 result[fol].append(sl.copy())
+                sl.clear()
                 break
         if stop:
             status = 'stopped'
@@ -159,6 +160,7 @@ async def makelist(bot:commands.Bot,ctx:commands.Context,temp_d, temp_f):
 async def reactor(bot,ctx:commands.Context,misc,saved:commands.Context=None):#pylint: disable=R0914,R0913
 
     d = os.path.basename(misc['url'])
+    misc['sl'] = [os.path.basename(p) for p in misc['sl']]
     reactions = ['⏫','⏭️']
     state = f'Current folder: {misc["folder"]}\nCurrent list:{misc["sl"]}\nimage: {d}'
     embed = discord.Embed(title='image selector',description=state)

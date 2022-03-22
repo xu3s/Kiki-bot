@@ -172,7 +172,8 @@ def zip_stitch(zfp, **kwargs):
                         print('is true')
                         itername = f'{int(itername)+1:03d}'
                         result = stitch(
-                                [zf.open(imp,'r') for imp in images if imp in c],
+                                # [zf.open(imp,'r') for imp in images if imp in c],
+                                [zf.open(imp,'r') for imp in c],
                                 vertical=vertical, quality=quality, custname=itername)
                         zf.writestr(result.name, result.getvalue())
 
