@@ -32,16 +32,8 @@ class ImageStitcher(commands.Cog):
             return
 
         loop = asyncio.get_running_loop()
-        try:
-            await presence_change(self.bot, 'append')
-            await asyncio.gather(loop.create_task(
-                self.proccess_stitch(ctx, zip_link, att, max_stitch)))
-            await presence_change(self.bot, 'substract')
-        except Exception as e:
-            print(e)
-            await presence_change(self.bot, 'substract')
-            await ctx.reply('error occured while stitching')
-            raise
+        await asyncio.gather(loop.create_task(
+            self.proccess_stitch(ctx, zip_link, att, max_stitch)))
 
     async def proccess_stitch(self, ctx:commands.Context, zip_link, att, max_stitch):
         tr = '[ \n]'
@@ -51,6 +43,7 @@ class ImageStitcher(commands.Cog):
             max_stitch = None
        #  if att:
        # zip_link.extend([z.url for z in att if z.filename.endswith('.zip')])
+        await presence_change(self.bot,'append')
         if zip_link:
             zip_link = re.sub(tr, ' ', zip_link).split(' ')
             for zl in zip_link:
@@ -104,6 +97,8 @@ class ImageStitcher(commands.Cog):
                         await ctx.reply('feature not implemented yet')
 
                 print(f'^^{bcolors.OKBLUE}requester: {ctx.author}{bcolors.ENDC}')
+        await presence_change(self.bot,'substract')
+
 
         # await presence_change(self.bot, 'substract')
 
