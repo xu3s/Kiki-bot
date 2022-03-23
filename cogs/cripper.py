@@ -21,7 +21,7 @@ class ComicCrawler(commands.Cog):#pylint: disable=too-few-public-methods
             return
         slink = check_link(slink)
         manga = Manga(ctx)
-        await ctx.send('Processing... Please wait!')
+        await ctx.send('Processing... Please wait!', delete_after=60)
         analyze = manga.manga(slink)
         if analyze:
             await ctx.reply(analyze)
@@ -35,7 +35,7 @@ class ComicCrawler(commands.Cog):#pylint: disable=too-few-public-methods
         retry = 0
         while not isinstance(chapter, list):
             if retry >= 3:
-                await ctx.reply("invalid answer for 3 times, so aborting!")
+                await ctx.reply("invalid answer for 3 times, so aborting!", delete_after=30)
                 return
             retry += 1
             if not chapter:
@@ -59,19 +59,18 @@ class ComicCrawler(commands.Cog):#pylint: disable=too-few-public-methods
 
     async def process(self,ctx:commands.Context,manga,chapter):
 
-        await ctx.reply(f'Processing to dowload ***{",".join([str(a) for a in chapter])}*** Please wait!')
-        # await self.bot.change_presence(activity=discord.Activity(
-        #     type=discord.ActivityType.watching, name='Currently Downloading'))
-        await presence_change(self.bot, 'append')
-        for epl in manga.mdownload(chapter):
-            await ctx.reply(epl)
-            print(f'epl: {epl}')
-        await ctx.reply('Done!')
-        print(f'{bcolors.OKBLUE}requester: {ctx.author}{bcolors.ENDC}')
-        await presence_change(self.bot, 'substract')
-        # await self.bot.change_presence(activity=discord.Activity(
-        #     type=discord.ActivityType.watching, name='Its ok to use'))
-
+        await ctx.reply(f'Processing to dowload episode(s) ***{",".join([str(a) for a in chapter])}*** Please wait!')
+        try:
+            await presence_change(self.bot, 'append')
+            for epl in manga.mdownload(chapter):
+                await ctx.reply(epl)
+                print(f'epl: {epl}')
+            await ctx.reply('Done!')
+            print(f'{bcolors.OKBLUE}requester: {ctx.author}{bcolors.ENDC}')
+            await presence_change(self.bot, 'substract')
+        except Exception:
+            await presence_change(self.bot, 'substract')
+            raise
 
 
 def check_link(link):

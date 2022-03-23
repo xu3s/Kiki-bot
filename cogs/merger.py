@@ -32,10 +32,16 @@ class ImageStitcher(commands.Cog):
             return
 
         loop = asyncio.get_running_loop()
-        await presence_change(self.bot, 'append')
-        await asyncio.gather(loop.create_task(
-            self.proccess_stitch(ctx, zip_link, att, max_stitch)))
-        await presence_change(self.bot, 'substract')
+        try:
+            await presence_change(self.bot, 'append')
+            await asyncio.gather(loop.create_task(
+                self.proccess_stitch(ctx, zip_link, att, max_stitch)))
+            await presence_change(self.bot, 'substract')
+        except Exception as e:
+            print(e)
+            await presence_change(self.bot, 'substract')
+            await ctx.reply('error occured while stitching')
+            raise
 
     async def proccess_stitch(self, ctx:commands.Context, zip_link, att, max_stitch):
         tr = '[ \n]'
@@ -59,6 +65,7 @@ class ImageStitcher(commands.Cog):
                                 with zipfile.ZipFile(fp,'r',zipfile.ZIP_DEFLATED) as zf:
                                     if max_stitch:
                                         ijoiner.zip_stitch(fp, max_stitch=max_stitch)
+                                        await ctx.send(f'stitching... max_stitch:{max_stitch}', delete_after=30)
                                     else:
                                         print('extracting..')
                                         zf.extractall(path=tempdir)
@@ -76,6 +83,7 @@ class ImageStitcher(commands.Cog):
                                                     return e
                                         if custom['status'] == 'success':
                                             print('process stitching..')
+                                            await ctx.send('stitching...', delete_after=30)
                                             ijoiner.zip_stitch(fp, custom=custom['result'])
                                         else:
                                             await ctx.reply('operation canceled!')
