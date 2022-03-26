@@ -73,6 +73,7 @@ class ImageStitcher(commands.Cog):
                                                 if retry >= 5:
                                                     print(f'error on mkl {e}')
                                                     await ctx.reply(f'failed loading file:\n {e}')
+                                                    await presence_change(bot, 'substract')
                                                     return e
                                         if custom['status'] == 'success':
                                             print('process stitching..')
@@ -87,6 +88,7 @@ class ImageStitcher(commands.Cog):
 
                             except Exception as e:
                                 await ctx.reply(f'error processing {zl}: \n {e}')
+                                await presence_change(bot,'substract')
                                 raise e
                         else:
                             await ctx.reply(f'failed to fetch file\nerr:{info}')
