@@ -20,7 +20,7 @@ def natural_key(text):
     stoi = lambda t: int(t) if t.isdigit() else t
     return [stoi(c) for c in re.split(r'(\d+)', text)]
 
-def stitch(images:list, vertical: bool = True, quality: int = 100,custname=None) -> io.BytesIO:
+def stitch(images:list, vertical: bool = True, quality: int = 95,custname=None) -> io.BytesIO:
     """ Stitch images
     :images: list of file path or a file object
       The file object must implement file.read, file.seek
@@ -98,7 +98,7 @@ def folder_stitch(path:pathlib.PurePath, **kwargs):
     vertical = kwargs.pop('vertical',True)
     max_stitch = kwargs.pop('max_stitch',3)
     custom = kwargs.pop('custom',None)
-    quality = kwargs.pop('quality',100)
+    quality = kwargs.pop('quality',95)
     r = kwargs.pop('r',False)
 
     path_content = sorted(os.listdir(os.path.abspath(path)), key=natural_key)
@@ -153,7 +153,7 @@ def zip_stitch(zfp, **kwargs):
     vertical = kwargs.pop('vertical',True)
     max_stitch = kwargs.pop('max_stitch',3)
     custom = kwargs.pop('custom',None)
-    quality = kwargs.pop('quality',100)
+    quality = kwargs.pop('quality',95)
     # r = kwargs.pop('r',False)
     zfl = kwargs.pop('zfl', get_zfl(zfp))
 
@@ -231,7 +231,7 @@ def chan_gen(strnum):
             result.append(str(x))
     return result
 
-def analyzer(p, vertical:bool=True, max_stitch:int=3, quality:int=100, r:bool=False):
+def analyzer(p, vertical:bool=True, max_stitch:int=3, quality:int=95, r:bool=False):
     """ Analyze the args
     """
 
