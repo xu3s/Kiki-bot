@@ -135,5 +135,22 @@ def chan_gen(strnum):
             result.append(int(x))
     return result
 
+<<<<<<< HEAD
 def setup(bot):
     bot.add_cog(ComicCrawler(bot))
+=======
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+
+async def setup(bot):
+    await bot.add_cog(ComicCrawler(bot))
+>>>>>>> 4546770 (testing discord.py v2.0)

@@ -254,5 +254,5 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
-def setup(bot):
-    bot.add_cog(ImageStitcher(bot))
+async def setup(bot):
+    await bot.add_cog(ImageStitcher(bot))
