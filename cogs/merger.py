@@ -57,7 +57,7 @@ class ImageStitcher(commands.Cog):
                             try:
                                 with zipfile.ZipFile(fp,'r',zipfile.ZIP_DEFLATED) as zf:
                                     if max_stitch:
-                                        ijoiner.zip_stitch(fp, max_stitch=max_stitch)
+                                        nfp = ijoiner.zip_stitch(fp, max_stitch=max_stitch)
                                         await ctx.send(f'stitching... max_stitch:{max_stitch}', delete_after=30)
                                     else:
                                         print('extracting..')
@@ -78,12 +78,12 @@ class ImageStitcher(commands.Cog):
                                         if custom['status'] == 'success':
                                             print('process stitching..')
                                             await ctx.send('stitching...', delete_after=30)
-                                            ijoiner.zip_stitch(fp, custom=custom['result'])
+                                            nfp = ijoiner.zip_stitch(fp, custom=custom['result'])
                                         else:
                                             await ctx.reply('operation canceled!')
                                             break
                                     # run in task maybe??
-                                    up = dbx.upload(fp, '/stitched', False)
+                                    up = dbx.upload(nfp, '/stitched', False)
                                     await ctx.reply(up)
 
                             except Exception as e:

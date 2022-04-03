@@ -56,11 +56,14 @@ def stitch(images:list, vertical: bool = True, quality: int = 95,custname=None) 
         res_width, res_height = max(width), sum(height)
     else:
         res_width, res_height = sum(width), max(height)
-
+    # TODO: find a better way to find im_mode!.
     misc['im_mode'] = max(misc['im_mode'], key=misc['im_mode'].count)
+    misc['im_mode'] = misc['im_mode'] if misc['im_mode'] != 'L' else 'RGB'
+    print(misc['im_mode'])
 
     result = Image.new(misc['im_mode'], (res_width, res_height),
-            color=(255, 255, 255) if misc['im_mode'] != 'L' else (255))
+            color=(255, 255, 255))
+    # if misc['im_mode'] != 'L' else (255))
     start_val = 0
     for img in img_obj.values():
         result.paste(img, box=(0, start_val) if vertical else (start_val, 0))
@@ -72,7 +75,7 @@ def stitch(images:list, vertical: bool = True, quality: int = 95,custname=None) 
     if custname:
         npath = list(img_obj.keys())[0]
         io_bytes.name = os.path.join(os.path.dirname(npath),
-                'stitched', f'{custname}.{misc["im_format"]}')
+                f'{custname}.{misc["im_format"]}')
     else:
         name_list = [os.path.join(os.path.dirname(p),
             'stitched', os.path.basename(p)) for p in img_obj]
@@ -156,33 +159,36 @@ def zip_stitch(zfp, **kwargs):
     quality = kwargs.pop('quality',95)
     # r = kwargs.pop('r',False)
     zfl = kwargs.pop('zfl', get_zfl(zfp))
+    nzpath = f'{splext(zfp)[0]}_(stitched).zip'
+    with zipfile.ZipFile(zfp, 'r', zipfile.ZIP_DEFLATED) as zf:
+        with zipfile.ZipFile(nzpath,
+                'w',zipfile.ZIP_DEFLATED) as nzf:
+            for fol in zfl.keys():
+                images = zfl[fol]
+                itername = 0
+                if custom and len(images) > 1:
+                    for clist in custom.values():
+                        for c in clist:
+                            if not c:
+                                continue
+                            itername = f'{int(itername)+1:03d}'
+                            result = stitch(
+                                    # [zf.open(imp,'r') for imp in images if imp in c],
+                                    [zf.open(imp,'r') for imp in c],
+                                    vertical=vertical, quality=quality, custname=itername)
+                            nzf.writestr(result.name, result.getvalue())
 
-    with zipfile.ZipFile(zfp, 'a', zipfile.ZIP_DEFLATED) as zf:
-        for fol in zfl.keys():
-            images = zfl[fol]
-            itername = 0
-            if custom and len(images) > 1:
-                for clist in custom.values():
-                    for c in clist:
-                        if not c:
-                            continue
+                elif not custom and len(images) > 1:
+                    for x in range(0, len(images), max_stitch):
                         itername = f'{int(itername)+1:03d}'
                         result = stitch(
-                                # [zf.open(imp,'r') for imp in images if imp in c],
-                                [zf.open(imp,'r') for imp in c],
-                                vertical=vertical, quality=quality, custname=itername)
-                        zf.writestr(result.name, result.getvalue())
-
-            elif not custom and len(images) > 1:
-                for x in range(0, len(images), max_stitch):
-                    itername = f'{int(itername)+1:03d}'
-                    result = stitch(
-                            [zf.open(imp,'r') for imp in images[x:x+max_stitch]],
-                                vertical=vertical, quality=quality,
-                                custname=itername)
-                    zf.writestr(result.name, result.getvalue())
-            elif len(images) <= 1:
-                print('only 1 image or less found')
+                                [zf.open(imp,'r') for imp in images[x:x+max_stitch]],
+                                    vertical=vertical, quality=quality,
+                                    custname=itername)
+                        nzf.writestr(result.name, result.getvalue())
+                elif len(images) <= 1:
+                    print('only 1 image or less found')
+    return nzpath
 
 
 
