@@ -36,6 +36,8 @@ class ImageStitcher(commands.Cog):
             self.proccess_stitch(ctx, zip_link, att, max_stitch)))
 
     async def proccess_stitch(self, ctx:commands.Context, zip_link, att, max_stitch):
+
+        loop = asyncio.get_running_loop()
         tr = '[ \n]'
         try:
             max_stitch = int(max_stitch)
@@ -51,7 +53,7 @@ class ImageStitcher(commands.Cog):
                     os.chmod(tempdir, os.stat(tempfile.tempdir).st_mode)
                     print(f'tempd: {tempdir}')
                     if 'dropbox.com' in zl:
-                        status, info, fp = dbx.download(zl,tempdir)
+                        status, info, fp = await loop.run_in_executor(None,dbx.download,zl,tempdir)
                         if status == 'success':
 
                             try:
@@ -83,8 +85,8 @@ class ImageStitcher(commands.Cog):
                                             await ctx.reply('operation canceled!')
                                             break
                                     # run in task maybe??
-                                    up = dbx.upload(nfp, '/stitched', False)
-                                    await ctx.reply(up)
+                                    up = await loop.run_in_executor(None,dbx.upload, nfp, '/stitched', False)
+                                    await ctx.reply(f'Name: {up["name"]}\nUrl: {up["url"]}')
 
                             except Exception as e:
                                 await ctx.reply(f'error processing {zl}: \n {e}')
