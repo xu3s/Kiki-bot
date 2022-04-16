@@ -1,28 +1,27 @@
 import asyncio
-import discord
 from discord.ext import commands
-from ccrawlerv2 import Manga
+from ccrawlerv3 import Manga
 from cogs import pager
 from cogs.misc_ext import presence_change
+queue = asyncio.Queue()
 
-
-class ComicCrawler(commands.Cog):#pylint: disable=too-few-public-methods
+class ComicCrawler(commands.Cog):
     '''Crawl comic'''
 
     def __init__(self, bot):
+        self.manga:Manga
         self.bot = bot
 
-    # @commands.command(pass_context=True)
-    # @commands.has_role('role')
     @commands.command()
     async def get(self, ctx:commands.Context, slink=None, chapter=None):
         if not slink:
             await ctx.reply('series Url is not specified')
             return
         slink = check_link(slink)
-        manga = Manga(ctx)
+        manga = Manga(slink)
+        self.manga = manga
         await ctx.send('Processing... Please wait!', delete_after=60)
-        analyze = manga.manga(slink)
+        analyze = manga.manga()
         if analyze:
             await ctx.reply(analyze)
             return
@@ -50,28 +49,54 @@ class ComicCrawler(commands.Cog):#pylint: disable=too-few-public-methods
                     await ctx.reply('Invalid Chapter!\nsee chapter list below')
                     chapter = await pager.pager(self.bot, ctx, title, contents)
 
-            # await ctx.reply('Chapter number is invalid!')
-            #     return
+        await presence_change(self.bot, 'append')
+        await asyncio.gather(
+                self.process(ctx,chapter),
+                _queue_consumer(len(chapter))
+                )
+        await ctx.reply('Done!')
+        await presence_change(self.bot, 'substract')
+
+
+    async def process(self,ctx:commands.Context,chapter):
         loop = asyncio.get_running_loop()
+        await ctx.reply(f'''
+Processing to dowload episode(s) ***{",".join([str(a) for a in chapter])}*** Please wait!
+''')
+        def _process_download():
+            for epl in self.manga.mdownload(chapter):
+                queue.put_nowait((ctx,epl))
 
-        await asyncio.gather(loop.create_task(self.process(ctx,manga,chapter)))
+        await loop.run_in_executor(None,_process_download)
 
 
-    async def process(self,ctx:commands.Context,manga,chapter):
-
-        await ctx.reply(f'Processing to dowload episode(s) ***{",".join([str(a) for a in chapter])}*** Please wait!')
+async def _queue_consumer(ch_len):
+    processed_item = 0
+    while True:
         try:
-            await presence_change(self.bot, 'append')
-            for epl in manga.mdownload(chapter):
-                await ctx.reply(epl)
-                print(f'epl: {epl}')
-            await ctx.reply('Done!')
-            print(f'{bcolors.OKBLUE}requester: {ctx.author}{bcolors.ENDC}')
-            await presence_change(self.bot, 'substract')
-        except Exception:
-            await presence_change(self.bot, 'substract')
-            raise
-
+            ctx, result = queue.get_nowait()
+            match result['status']:
+                case 'ok':
+                    message = f'''
+File Name: {result['name']}
+Download Url: {result['url']}
+'''
+                case 'error':
+                    message = f'''
+Error occured!
+Info: {result['info']}
+'''
+                case _:
+                    message = f'''
+Unexepected error!.
+{result}
+'''
+            await ctx.reply(message)
+            processed_item += 1
+        except asyncio.QueueEmpty:
+            await asyncio.sleep(1)
+        if processed_item >= ch_len:
+            break
 
 def check_link(link):
 

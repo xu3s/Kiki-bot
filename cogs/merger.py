@@ -4,6 +4,7 @@ import zipfile
 import os
 from urllib import parse
 import re
+from functools import partial
 
 # import requests as req
 import discord
@@ -31,20 +32,17 @@ class ImageStitcher(commands.Cog):
             await ctx.reply('No link to zip or attachment found/specified')
             return
 
-        loop = asyncio.get_running_loop()
-        await asyncio.gather(loop.create_task(
-            self.proccess_stitch(ctx, zip_link, att, max_stitch)))
+        # loop = asyncio.get_running_loop()
+        # await asyncio.gather(loop.create_task(
+        await self.proccess_stitch(ctx, zip_link, att, max_stitch)
 
     async def proccess_stitch(self, ctx:commands.Context, zip_link, att, max_stitch):
 
-        loop = asyncio.get_running_loop()
         tr = '[ \n]'
         try:
             max_stitch = int(max_stitch)
         except (ValueError,TypeError):
             max_stitch = None
-       #  if att:
-       # zip_link.extend([z.url for z in att if z.filename.endswith('.zip')])
         await presence_change(self.bot,'append')
         if zip_link:
             zip_link = re.sub(tr, ' ', zip_link).split(' ')
@@ -53,14 +51,18 @@ class ImageStitcher(commands.Cog):
                     os.chmod(tempdir, os.stat(tempfile.tempdir).st_mode)
                     print(f'tempd: {tempdir}')
                     if 'dropbox.com' in zl:
-                        status, info, fp = await loop.run_in_executor(None,dbx.download,zl,tempdir)
-                        if status == 'success':
-
+                        loop = asyncio.get_running_loop()
+                        dbd = await loop.run_in_executor(None,dbx.download,zl,tempdir)
+                        if dbd['status'] == 'ok':
+                            fp = dbd['fp']
                             try:
                                 with zipfile.ZipFile(fp,'r',zipfile.ZIP_DEFLATED) as zf:
                                     if max_stitch:
-                                        nfp = ijoiner.zip_stitch(fp, max_stitch=max_stitch)
-                                        await ctx.send(f'stitching... max_stitch:{max_stitch}', delete_after=30)
+                                        nfp = await loop.run_in_executor(None,
+                                                partial(ijoiner.zip_stitch ,fp,
+                                                    max_stitch=max_stitch))
+                                        await ctx.send(f'stitching... max_stitch:{max_stitch}',
+                                                delete_after=30)
                                     else:
                                         print('extracting..')
                                         zf.extractall(path=tempdir)
@@ -80,27 +82,31 @@ class ImageStitcher(commands.Cog):
                                         if custom['status'] == 'success':
                                             print('process stitching..')
                                             await ctx.send('stitching...', delete_after=30)
-                                            nfp = ijoiner.zip_stitch(fp, custom=custom['result'])
+                                            nfp = await loop.run_in_executor(None,
+                                                    partial(ijoiner.zip_stitch, fp,
+                                                        custom=custom['result']))
                                         else:
                                             await ctx.reply('operation canceled!')
                                             break
-                                    # run in task maybe??
-                                    up = await loop.run_in_executor(None,dbx.upload, nfp, '/stitched', False)
-                                    await ctx.reply(f'Name: {up["name"]}\nUrl: {up["url"]}')
+
+                                    up = await loop.run_in_executor(None,
+                                            dbx.upload, nfp, '/stitched')
+                                    if up['status'] == 'ok':
+                                        await ctx.reply(f'Name: {up["name"]}\nUrl: {up["url"]}')
+                                    else:
+                                        await ctx.reply(up)
 
                             except Exception as e:
                                 await ctx.reply(f'error processing {zl}: \n {e}')
                                 await presence_change(self.bot,'substract')
                                 raise e
                         else:
-                            await ctx.reply(f'failed to fetch file\nerr:{info}')
+                            await ctx.reply(f'failed to fetch file\nerr:{dbd["info"]}')
                     elif 'cdn.discordapp.com' in zl:
                         await ctx.reply(zl)
                     else:
                         print('not implemented yet')
                         await ctx.reply('feature not implemented yet')
-
-                print(f'^^{bcolors.OKBLUE}requester: {ctx.author}{bcolors.ENDC}')
         await presence_change(self.bot,'substract')
 
 
