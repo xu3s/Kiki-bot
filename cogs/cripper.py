@@ -60,7 +60,7 @@ class ComicCrawler(commands.Cog):
             await ctx.send('''
 Unexepected error occured!.
 did you delete your original message/commands''')
-            await presence_change(self.bot,'substract'''')
+            await presence_change(self.bot,'substract')
             raise
         await presence_change(self.bot, 'substract')
 
