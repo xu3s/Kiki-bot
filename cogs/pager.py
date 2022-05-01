@@ -1,13 +1,14 @@
 import asyncio
 
-# from discord.ext import commands
+from discord.ext import commands
 import discord
 
 
-async def pager(bot, ctx, title, contents:list):
+async def pager(bot, ctx:commands.Context, title, contents:list):
     contents = [contents[x:x+10] for x in range(0, len(contents), 10)]
     pages = len(contents)
     cur_p = 1
+    message: discord.Message
     message = await ctx.reply(embed=_page(cur_p, pages, contents, title))
     for x in ['⏮️', '⬅️', '➡️', '⏭️','❌']:
         await message.add_reaction(x)
@@ -59,6 +60,7 @@ async def pager(bot, ctx, title, contents:list):
     try:
         user_response = await process(cur_p)
         print(user_response)
+        await message.delete()
         return user_response
         # if user_response == 'cancel':
             # await ctx.send('Aborted!')
@@ -68,13 +70,11 @@ async def pager(bot, ctx, title, contents:list):
 
     except asyncio.TimeoutError:
         await ctx.reply('Time is Up!!!')
-        return 'cancel'
-    except ValueError as e:
-        print(e)
-        await ctx.reply('Invalid response!!!\nAborted!.')
+        await message.delete()
         return 'cancel'
     except asyncio.CancelledError:
         await ctx.reply('Aborted')
+        await message.delete()
         return 'cancel'
 
 def _page(cur_page, pages, content, title):
@@ -82,23 +82,3 @@ def _page(cur_page, pages, content, title):
     return discord.Embed(title=title,
                          description=f'Page {cur_page}/{pages}\n{nl.join(content[cur_page-1])}'
                          )
-
-def chan_gen(strnum):
-    """ Generate chapter number from format 1,3-4,6
-    or something like that
-    :return: list of number [1,3,4,6]
-    """
-    strnum = str(strnum).strip().replace(' ', '')
-    if "," in strnum:
-        a = strnum.split(',')
-    else:
-        a = [strnum]
-    result = []
-    for x in a:
-        if '-' in x:
-            xr = x.split('-')
-            (result.append(b) for b in range(int(xr[0]), int(xr[1])+1))# pylint: disable=W0106
-            #     result.append(b)
-            continue
-        result.append(int(x))
-    return result

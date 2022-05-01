@@ -50,11 +50,16 @@ class ComicCrawler(commands.Cog):
                     chapter = await pager.pager(self.bot, ctx, title, contents)
 
         await presence_change(self.bot, 'append')
-        await asyncio.gather(
-                self.process(ctx,chapter),
-                _queue_consumer(len(chapter))
-                )
-        await ctx.reply('Done!')
+        try:
+            await asyncio.gather(
+                    self.process(ctx,chapter),
+                    _queue_consumer(len(chapter))
+                    )
+            await ctx.reply('Done!')
+        except Exception:
+            await ctx.reply('Unexepected error occured!.')
+            await presence_change(self.bot,'substract')
+            raise
         await presence_change(self.bot, 'substract')
 
 
