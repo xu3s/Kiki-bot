@@ -110,7 +110,8 @@ def chan_gen(strnum):
     or something like that
     :return: list of number [1,3,4,6]
     """
-    strnum = str(strnum).strip().replace(' ', '')
+    strnum = str(strnum).strip().replace('- ', '-').replace(' -',
+            '-').replace(', ',',').replace(' ,',',').replace(' ',',')
     if "," in strnum:
         a = strnum.split(',')
     else:
@@ -126,18 +127,6 @@ def chan_gen(strnum):
         if int(x) not in result:
             result.append(int(x))
     return result
-
-class bcolors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKCYAN = '\033[96m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
-
 
 def setup(bot):
     bot.add_cog(ComicCrawler(bot))

@@ -156,7 +156,7 @@ def zip_stitch(zfp, **kwargs):
     vertical = kwargs.pop('vertical',True)
     max_stitch = kwargs.pop('max_stitch',3)
     custom = kwargs.pop('custom',None)
-    quality = kwargs.pop('quality',95)
+    quality = kwargs.pop('quality',90)
     # r = kwargs.pop('r',False)
     zfl = kwargs.pop('zfl', get_zfl(zfp))
     nzpath = f'{splext(zfp)[0]}_(stitched).zip'
