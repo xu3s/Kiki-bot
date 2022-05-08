@@ -12,7 +12,7 @@ prefix = conf().PREFIX
 print(f'prefix: {prefix}')
 description = '''
 Kiki Ripper.
-it's a discord bot that has utility for scanlation.
+it's a discord bot to download raws or stitch image.
 '''
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix=prefix, description=description,
