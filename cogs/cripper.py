@@ -135,5 +135,5 @@ def chan_gen(strnum):
             result.append(int(x))
     return result
 
-def setup(bot):
-    bot.add_cog(ComicCrawler(bot))
+async def setup(bot):
+    await bot.add_cog(ComicCrawler(bot))

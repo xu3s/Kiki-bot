@@ -1,4 +1,5 @@
-import os
+# import os
+import asyncio
 import time
 import discord
 from discord.ext import commands
@@ -13,7 +14,9 @@ description = '''
 Kiki Ripper.
 it's a discord bot that has utility for scanlation.
 '''
-bot = commands.Bot(command_prefix=prefix, description=description)
+intents = discord.Intents.all()
+bot = commands.Bot(command_prefix=prefix, description=description,
+        intents=intents)
 
 @bot.event
 async def on_ready():
@@ -27,12 +30,16 @@ async def on_ready():
 async def ping(ctx:commands.Context):
     '''Ping the bot if it online or not.'''
     t1 = time.perf_counter()
-    await ctx.trigger_typing()
+    await ctx.typing()
     t2 = time.perf_counter()
     await ctx.send(f'Pong! {round((t2-t1)*1000)} ms')
 
-if __name__=='__main__':
+async def main():
     cogs_to_load = ['cogs.cripper', 'cogs.merger']
-    for cog in cogs_to_load:
-        bot.load_extension(cog)
-    bot.run(TOKEN)
+    async with bot:
+        for cog in cogs_to_load:
+            await bot.load_extension(cog)
+        await bot.start(TOKEN)
+
+if __name__=='__main__':
+    asyncio.run(main())
