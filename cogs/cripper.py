@@ -18,10 +18,11 @@ class ComicCrawler(commands.Cog):
             await ctx.reply('series Url is not specified')
             return
         slink = check_link(slink)
-        manga = Manga(slink)
-        self.manga = manga
+        self.manga = manga = Manga(slink)
         await ctx.send('Processing... Please wait!', delete_after=60)
-        analyze = manga.manga()
+        qu = asyncio.Queue()
+        await qu.put(manga.manga())
+        analyze = await qu.get()
         if analyze:
             await ctx.reply(analyze)
             return
