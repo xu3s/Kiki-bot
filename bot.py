@@ -15,8 +15,21 @@ Kiki Ripper.
 it's a discord bot to download raws or stitch image.
 '''
 intents = discord.Intents.all()
-bot = commands.Bot(command_prefix=prefix, description=description,
-        intents=intents)
+# bot = commands.Bot(command_prefix=prefix, description=description,
+#         intents=intents)
+
+class MyBot(commands.Bot):
+    '''Setup Bot '''
+
+    def __init__(self):
+        super().__init__(
+                command_prefix=commands.when_mentioned_or(prefix),
+                intents=intents)
+
+    async def setup_hook(self) -> None:
+        pass
+
+bot = MyBot()
 
 @bot.event
 async def on_ready():

@@ -51,6 +51,16 @@ def get_episodes(html,url):
 def get_images(html,url):
 
     base = bsoup(html, 'html.parser')
-    imgs = base.find_all('img', class_='comic-contain__item')
+    imgs = base.find_all('amp-img', class_='comic-contain__item')
     # imgs = [img[0] for img in re.findall('<noscript><img src="(.+?)" alt=(.+?)></noscript>', html)]
-    return [img['data-src'] for img in imgs]
+    return [img['src'] for img in imgs]
+
+def debug(file):
+
+    with open(file) as f:
+        html = f.read()
+
+    print(get_images(html=html, url='url'))
+
+if __name__ == '__main__':
+    debug('test/baoziimg-14-06-2022.html')
