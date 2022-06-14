@@ -14,22 +14,29 @@ description = '''
 Kiki Ripper.
 it's a discord bot to download raws or stitch image.
 '''
+# intents = discord.Intents.default()
+#intents.message_content = True
+# intents.guild_messages = True
+# intents.presences = True
+# intents.guild_reactions = True
+# intents.members = True
+# intents.messages = True
 intents = discord.Intents.all()
-# bot = commands.Bot(command_prefix=prefix, description=description,
-#         intents=intents)
+bot = commands.Bot(command_prefix=prefix, description=description,
+        intents=intents)
 
-class MyBot(commands.Bot):
-    '''Setup Bot '''
+# class MyBot(commands.Bot):
+#     '''Setup Bot '''
+# 
+#     def __init__(self):
+#         super().__init__(
+#                 command_prefix=commands.when_mentioned_or(prefix),
+#                 intents=intents)
+# 
+#     async def setup_hook(self) -> None:
+#         pass
 
-    def __init__(self):
-        super().__init__(
-                command_prefix=commands.when_mentioned_or(prefix),
-                intents=intents)
-
-    async def setup_hook(self) -> None:
-        pass
-
-bot = MyBot()
+# bot = MyBot()
 
 @bot.event
 async def on_ready():
@@ -49,10 +56,10 @@ async def ping(ctx:commands.Context):
 
 async def main():
     cogs_to_load = ['cogs.cripper', 'cogs.merger']
-    async with bot:
-        for cog in cogs_to_load:
-            await bot.load_extension(cog)
-        await bot.start(TOKEN)
+    # async with bot:
+    for cog in cogs_to_load:
+        await bot.load_extension(cog)
+    await bot.start(TOKEN)
 
 if __name__=='__main__':
     asyncio.run(main())
