@@ -45,7 +45,17 @@ class ComicCrawler(commands.Cog):
                 return
             else:
                 try:
+                    not_listed = []
                     chapter = chan_gen(chapter)
+                    for i,ch in enumerate(chapter):
+                        if ch not in [n for n,_ in enumerate(episodes)]:
+                            not_listed.append(chapter.pop(i))
+
+                    if not_listed:
+                        await ctx.reply(f'index {not_listed} not found!')
+                    if not chapter:
+                        raise ValueError('not found')
+
                 except ValueError:
                     await ctx.reply('Invalid Chapter!\nsee chapter list below')
                     chapter = await pager.pager(self.bot, ctx, title, contents)

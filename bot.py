@@ -21,30 +21,39 @@ it's a discord bot to download raws or stitch image.
 # intents.guild_reactions = True
 # intents.members = True
 # intents.messages = True
+#TODO: Use only required intents
 intents = discord.Intents.all()
-bot = commands.Bot(command_prefix=prefix, description=description,
-        intents=intents)
+# bot = commands.Bot(command_prefix=prefix, description=description,
+#         intents=intents)
 
-# class MyBot(commands.Bot):
-#     '''Setup Bot '''
-# 
-#     def __init__(self):
-#         super().__init__(
-#                 command_prefix=commands.when_mentioned_or(prefix),
-#                 intents=intents)
-# 
-#     async def setup_hook(self) -> None:
-#         pass
+class MyBot(commands.Bot):
+    '''Setup Bot '''
 
-# bot = MyBot()
+    def __init__(self):
+        super().__init__(
+                command_prefix=commands.when_mentioned_or(prefix),
+                intents=intents)
 
-@bot.event
-async def on_ready():
-    print('Logged in as:')
-    print(bot.user.name)
-    print(bot.user.id)
-    print('-----------')
-    await presence_change(bot)
+    async def on_ready(self):
+        print('Logged in as:')
+        print(self.user.name)
+        print(self.user.id)
+        print('-----------')
+        await presence_change(self)
+
+
+    # async def setup_hook(self) -> None:
+    #     pass
+
+bot = MyBot()
+
+# @bot.event
+# async def on_ready():
+#     print('Logged in as:')
+#     print(bot.user.name)
+#     print(bot.user.id)
+#     print('-----------')
+#     await presence_change(bot)
 
 @bot.command()
 async def ping(ctx:commands.Context):

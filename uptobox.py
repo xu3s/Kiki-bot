@@ -101,3 +101,7 @@ def download(dbx_url, dl_path) -> dict:
             'fp': fpath,
             'info': info
             }
+
+#def delete_batch(path):
+#    entries =
+#    dbx.files_delete_batch(entries)
