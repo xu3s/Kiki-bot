@@ -23,7 +23,7 @@ lxml==4.6.3
 lzstring==1.0.4
 multidict==5.1.0
 node-vm2==0.4.1
-Pillow==9.0.1
+Pillow==10.0.1
 ply==3.11
 pycryptodomex==3.14.1
 pyperclip==1.8.2
